@@ -1,0 +1,45 @@
+# Unity tarafından yeniden üretilebilen klasörler
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+/[Mm]emoryCaptures/
+/[Rr]ecordings/
+
+# Derlemeler
+/[Bb]uild/
+/[Bb]uilds/
+*.apk
+*.aab
+*.app
+*.ipa
+
+# IDE ve editör dosyaları
+/.idea/
+/.vs/
+/.vscode/
+*.csproj
+*.sln
+*.slnx
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+
+# İşletim sistemi
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Unity / Crash
+sysinfo.txt
+crashlytics-build.properties
+unity-verify.log
+
+# JetBrains Rider
+*.sln.iml
+
+# NOT: .meta dosyaları özellikle görmezden gelinmez.
