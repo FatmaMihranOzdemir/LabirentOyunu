@@ -29,6 +29,12 @@ public class MazeBuilder : MonoBehaviour
     public float wallHeight = 3f;
     public float wallThickness = 0.2f;
 
+    [Header("Dış Alan")]
+    [Tooltip("Labirentin dışında kaç hücrelik zemin olsun. Ağaçlar buraya yerleşir. 0 = dış alan yok.")]
+    public int outerMargin = 6;
+    [Tooltip("Dış alanın kenarına görünmez duvar örer, oyuncunun kenardan düşmesini engeller.")]
+    public bool createInvisibleBoundary = true;
+
     public enum MazeDifficulty { Kolay, Orta, Zor }
 
     [Header("Zorluk Ayarı")]
@@ -77,11 +83,14 @@ public class MazeBuilder : MonoBehaviour
         {
             Debug.Log($"[Performans] {width}x{height} labirent {sw.ElapsedMilliseconds} ms'de üretildi.");
             MazeGenerator.ValidateGeneration(grid);
-            MazeGenerator.PrintMaze(grid);
-            Debug.Log($"[Çözülebilirlik] {(SolvabilityValidator.IsSolvable(grid) ? "EVET, çözülebilir." : "HAYIR, HATA VAR!")}");
+
+            var path = SolvabilityValidator.GetPathFromStartToExit(grid);
+            MazeGenerator.PrintMaze(grid, path);
+            Debug.Log($"[Çözülebilirlik] {(path.Count > 0 ? $"EVET, çözülebilir. Ana yol {path.Count} hücre uzunluğunda." : "HAYIR, HATA VAR!")}");
         }
 
         CreateFloor(grid);
+        CreateBoundary(grid);
 
         string startDoorDir = GetBoundaryDoorDirection(grid, grid.StartPosition);
         string exitDoorDir = GetBoundaryDoorDirection(grid, grid.ExitPosition);
@@ -129,7 +138,8 @@ public class MazeBuilder : MonoBehaviour
     }
 
     // --- Giriş odası: üç tarafı duvarla kapalı, tek açıklığı labirent kapısı ---
-
+    // DİKKAT: Bu üç duvar sadece görsel değil. Oyuncunun labirenti dolanıp
+    // doğrudan çıkışa gitmesini engelleyen şey bunlar. Kaldırmayın.
     private void BuildEntranceVestibule(MazeGridData grid, string doorDir)
     {
         Vector3 cellCenter = CellToWorldPosition(grid.StartPosition.x, grid.StartPosition.y);
@@ -137,7 +147,7 @@ public class MazeBuilder : MonoBehaviour
         Vector3 side = GetSideDirection(doorDir);
         Vector3 roomCenter = cellCenter + outward * cellSize;
 
-        CreatePad("EntranceFloor", roomCenter);
+        if (outerMargin < 1) CreatePad("EntranceFloor", roomCenter);
 
         CreateWall(roomCenter + outward * (cellSize / 2f), WallScaleForNormal(outward));
         CreateWall(roomCenter + side * (cellSize / 2f), WallScaleForNormal(side));
@@ -156,7 +166,6 @@ public class MazeBuilder : MonoBehaviour
 
             if (cc != null) cc.enabled = true;
         }
-
         else
         {
             Debug.LogWarning("[Giriş] Player alanı atanmamış, oyuncu taşınamadı.");
@@ -164,14 +173,13 @@ public class MazeBuilder : MonoBehaviour
     }
 
     // --- Çıkış platformu: dışarıda, açık, ışıklandırılacak ---
-
     private void BuildExitPlatform(MazeGridData grid, string doorDir)
     {
         Vector3 cellCenter = CellToWorldPosition(grid.ExitPosition.x, grid.ExitPosition.y);
         Vector3 outward = GetOutwardDirection(doorDir);
         Vector3 padCenter = cellCenter + outward * cellSize;
 
-        CreatePad("ExitFloor", padCenter);
+        if (outerMargin < 1) CreatePad("ExitFloor", padCenter);
 
         GameObject trigger = GameObject.CreatePrimitive(PrimitiveType.Cube);
         trigger.name = "ExitTrigger";
@@ -187,8 +195,37 @@ public class MazeBuilder : MonoBehaviour
             Debug.Log($"[Çıkış] Çıkış platformu ve tetikleyici yerleştirildi ({doorDir} kapısı): {padCenter}");
     }
 
-    // --- Yön yardımcıları ---
+    // --- Dış sınır: görünmez duvar, oyuncunun kenardan düşmesini engeller ---
+    private void CreateBoundary(MazeGridData grid)
+    {
+        if (!createInvisibleBoundary || outerMargin <= 0) return;
 
+        float halfW = (grid.Width * cellSize) / 2f + outerMargin * cellSize;
+        float halfH = (grid.Height * cellSize) / 2f + outerMargin * cellSize;
+        Vector3 center = new Vector3((grid.Width - 1) * cellSize / 2f, 0f, (grid.Height - 1) * cellSize / 2f);
+
+        float h = wallHeight * 3f;
+        float t = 1f;
+
+        CreateInvisibleWall(center + new Vector3(0, 0, halfH), new Vector3(halfW * 2f, h, t));
+        CreateInvisibleWall(center + new Vector3(0, 0, -halfH), new Vector3(halfW * 2f, h, t));
+        CreateInvisibleWall(center + new Vector3(halfW, 0, 0), new Vector3(t, h, halfH * 2f));
+        CreateInvisibleWall(center + new Vector3(-halfW, 0, 0), new Vector3(t, h, halfH * 2f));
+    }
+
+    private void CreateInvisibleWall(Vector3 localPos, Vector3 scale)
+    {
+        GameObject w = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        w.name = "BoundaryWall";
+        w.transform.parent = transform;
+        w.transform.localPosition = localPos + new Vector3(0, scale.y / 2f, 0);
+        w.transform.localScale = scale;
+
+        Renderer r = w.GetComponent<Renderer>();
+        if (r != null) r.enabled = false;
+    }
+
+    // --- Yön yardımcıları ---
     private Vector3 GetOutwardDirection(string direction)
     {
         switch (direction)
@@ -225,7 +262,6 @@ public class MazeBuilder : MonoBehaviour
     }
 
     // --- Yapı elemanları ---
-
     public Vector3 CellToWorldPosition(int x, int z)
     {
         return new Vector3(x * cellSize, 0, z * cellSize);
@@ -257,8 +293,6 @@ public class MazeBuilder : MonoBehaviour
         wall.transform.localPosition = localPos + new Vector3(0, wallHeight / 2f, 0);
         wall.transform.localScale = scale;
         wall.transform.localRotation = Quaternion.identity;
-
-     
     }
 
     private void CreatePad(string padName, Vector3 center)
@@ -269,29 +303,16 @@ public class MazeBuilder : MonoBehaviour
         pad.transform.localPosition = new Vector3(center.x, -0.1f, center.z);
     }
 
-
-
-    // HER HÜCREYE AYRI BİR ZEMİN KAROSU YERLEŞTİREN YENİ MANTIK:
+    // Zemin tek parça. Doku gerilmesini önlemek için karolara bölmek yerine
+    // materyalin Tiling ayarını kullanın (aşağıdaki nota bakın).
     private void CreateFloor(MazeGridData grid)
     {
-        // Temel labirent grid'i için hücre hücre zemin döşe
-        for (int x = 0; x < width; x++)
-        {
-            for (int z = 0; z < height; z++)
-            {
-                Vector3 cellCenter = CellToWorldPosition(x, z);
-                CreateSingleFloorTile($"FloorTile_{x}_{z}", cellCenter);
-            }
-        }
-    }
+        GameObject floor = CreateFloorObject();
+        floor.name = "Floor";
 
-    // Her bir 4x4'lük (cellSize) hücre için düzgün ölçekli karo oluşturan yardımcı metot
-    private void CreateSingleFloorTile(string tileName, Vector3 center)
-    {
-        GameObject tile = CreateFloorObject();
-        tile.name = tileName;
-        tile.transform.localScale = new Vector3(cellSize, 0.2f, cellSize);
-        tile.transform.localPosition = new Vector3(center.x, -0.1f, center.z);
+        float extra = outerMargin * cellSize * 2f;
+        floor.transform.localScale = new Vector3(grid.Width * cellSize + extra, 0.2f, grid.Height * cellSize + extra);
+        floor.transform.localPosition = new Vector3((grid.Width - 1) * cellSize / 2f, -0.1f, (grid.Height - 1) * cellSize / 2f);
     }
 
     private GameObject CreateFloorObject()
@@ -312,9 +333,4 @@ public class MazeBuilder : MonoBehaviour
         obj.transform.localRotation = Quaternion.identity;
         return obj;
     }
-
-   
-
-
-
 }
