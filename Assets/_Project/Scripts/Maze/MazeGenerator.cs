@@ -179,8 +179,10 @@ public static class MazeGenerator
 
     // --- Test / doğrulama araçları ---
 
-    public static void PrintMaze(MazeGridData grid)
+    public static void PrintMaze(MazeGridData grid, List<Vector2Int> path = null)
     {
+        HashSet<Vector2Int> pathSet = (path != null) ? new HashSet<Vector2Int>(path) : null;
+
         var sb = new System.Text.StringBuilder();
         for (int x = 0; x < grid.Width; x++) sb.Append("+--");
         sb.Append("+\n");
@@ -191,7 +193,12 @@ public static class MazeGenerator
             for (int x = 0; x < grid.Width; x++)
             {
                 MazeCell cell = grid.GetCell(x, z);
-                sb.Append(cell.Type == CellType.Start ? " S" : cell.Type == CellType.Exit ? " E" : "  ");
+
+                if (cell.Type == CellType.Start) sb.Append(" S");
+                else if (cell.Type == CellType.Exit) sb.Append(" E");
+                else if (pathSet != null && pathSet.Contains(new Vector2Int(x, z))) sb.Append(" .");
+                else sb.Append("  ");
+
                 sb.Append(cell.WallEast ? "|" : " ");
             }
             sb.Append("\n");
