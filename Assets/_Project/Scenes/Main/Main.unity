@@ -670,7 +670,7 @@ MonoBehaviour:
   wallThickness: 0.2
   difficulty: 1
   wallMaterial: {fileID: 2100000, guid: 1e23b2d236a58f040968acd05c361bce, type: 2}
-  floorMaterial: {fileID: 0}
+  floorMaterial: {fileID: 2100000, guid: 51ac1230262a947159540f8cde213017, type: 2}
   wallPrefab: {fileID: 0}
   floorPrefab: {fileID: 0}
   player: {fileID: 1023606763}

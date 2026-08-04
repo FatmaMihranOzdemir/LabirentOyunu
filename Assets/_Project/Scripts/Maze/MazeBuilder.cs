@@ -271,12 +271,27 @@ public class MazeBuilder : MonoBehaviour
 
 
 
+    // HER HÜCREYE AYRI BİR ZEMİN KAROSU YERLEŞTİREN YENİ MANTIK:
     private void CreateFloor(MazeGridData grid)
     {
-        GameObject floor = CreateFloorObject();
-        floor.name = "Floor";
-        floor.transform.localScale = new Vector3(grid.Width * cellSize, 0.2f, grid.Height * cellSize);
-        floor.transform.localPosition = new Vector3((grid.Width - 1) * cellSize / 2f, -0.1f, (grid.Height - 1) * cellSize / 2f);
+        // Temel labirent grid'i için hücre hücre zemin döşe
+        for (int x = 0; x < width; x++)
+        {
+            for (int z = 0; z < height; z++)
+            {
+                Vector3 cellCenter = CellToWorldPosition(x, z);
+                CreateSingleFloorTile($"FloorTile_{x}_{z}", cellCenter);
+            }
+        }
+    }
+
+    // Her bir 4x4'lük (cellSize) hücre için düzgün ölçekli karo oluşturan yardımcı metot
+    private void CreateSingleFloorTile(string tileName, Vector3 center)
+    {
+        GameObject tile = CreateFloorObject();
+        tile.name = tileName;
+        tile.transform.localScale = new Vector3(cellSize, 0.2f, cellSize);
+        tile.transform.localPosition = new Vector3(center.x, -0.1f, center.z);
     }
 
     private GameObject CreateFloorObject()
