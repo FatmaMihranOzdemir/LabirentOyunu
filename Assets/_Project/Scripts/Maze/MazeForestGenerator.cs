@@ -9,21 +9,18 @@ public class MazeForestGenerator : MonoBehaviour
     [Header("Ağaç Ayarları")]
     public GameObject[] treePrefabs;
 
-    [Header("Orman Sınır Ayarları (Sabit Labirent İçin)")]
-    [Tooltip("Labirentin bittiği maksimum X koordinatı (İçeri girerse artır)")]
-    public float mazeMaxX = 60f;
-    [Tooltip("Labirentin bittiği maksimum Z koordinatı (İçeri girerse artır)")]
-    public float mazeMaxZ = 60f;
+    [Header("Orman Sınır Ayarları")]
     [Tooltip("Duvarlardan kaç birim uzaktan orman başlasın?")]
-    public float safetyMargin = 6f;
-
-    [Header("Yoğunluk Ayarları")]
+    public float safetyMargin = 2f;
     [Tooltip("Dışarıya doğru kaç metre boyunca ağaç dikilsin?")]
     public float forestWidth = 30f;
-    [Tooltip("Ağaçların arasındaki mesafe")]
-    public float treeDensity = 2.5f;
+
+    [Header("Yoğunluk ve Doğallık")]
+    [Tooltip("Ağaçlar arası mesafe (Küçüldükçe sıklaşır, ideal: 3 - 4)")]
+    [Range(2f, 8f)]
+    public float treeSpacing = 3.5f;
     [Tooltip("Doğallık sapması")]
-    public float randomness = 0.6f;
+    public float randomness = 0.8f;
 
     private void OnEnable()
     {
@@ -46,19 +43,21 @@ public class MazeForestGenerator : MonoBehaviour
     {
         ClearForest();
 
-        if (treePrefabs == null || treePrefabs.Length == 0) return;
+        if (treePrefabs == null || treePrefabs.Length == 0 || grid == null) return;
 
         GameObject forestContainer = new GameObject("GeneratedForest");
         forestContainer.transform.parent = this.transform;
-
-        // Forest objesinin pozisyonundan bağımsız dünya koordinatı için burayı sıfırlıyoruz
         forestContainer.transform.localPosition = Vector3.zero;
 
-        // Labirentin güvenli dış sınırlarını belirliyoruz
+        // BURA DEĞİŞTİ: Labirentin GERÇEK boyutlarını dinamik hesaplıyoruz!
+        float calculatedMaxX = grid.Width * mazeBuilder.cellSize;
+        float calculatedMaxZ = grid.Height * mazeBuilder.cellSize;
+
+        // Labirentin güvenli dış sınırları
         float minSafeX = -safetyMargin;
-        float maxSafeX = mazeMaxX + safetyMargin;
+        float maxSafeX = calculatedMaxX + safetyMargin;
         float minSafeZ = -safetyMargin;
-        float maxSafeZ = mazeMaxZ + safetyMargin;
+        float maxSafeZ = calculatedMaxZ + safetyMargin;
 
         // Ağaçların dikileceği en dış çerçeve sınırları
         float startX = minSafeX - forestWidth;
@@ -66,17 +65,18 @@ public class MazeForestGenerator : MonoBehaviour
         float startZ = minSafeZ - forestWidth;
         float endZ = maxSafeZ + forestWidth;
 
-        for (float x = startX; x <= endX; x += treeDensity)
+        // treeSpacing ile güvenli adım atıyoruz
+        for (float x = startX; x <= endX; x += treeSpacing)
         {
-            for (float z = startZ; z <= endZ; z += treeDensity)
+            for (float z = startZ; z <= endZ; z += treeSpacing)
             {
-                // EĞER koordinat güvenli bölgenin İÇİNDEYSE burayı tamamen atla!
+                // Koordinat güvenli bölgenin İÇİNDEYSE pas geç!
                 if (x >= minSafeX && x <= maxSafeX && z >= minSafeZ && z <= maxSafeZ)
                 {
                     continue;
                 }
 
-                // Hafif rastgelelik
+                // Rastgele kaydırma
                 float posX = x + Random.Range(-randomness, randomness);
                 float posZ = z + Random.Range(-randomness, randomness);
                 Vector3 spawnPos = new Vector3(posX, 0f, posZ);
@@ -89,6 +89,15 @@ public class MazeForestGenerator : MonoBehaviour
 
                 float randomScale = Random.Range(0.8f, 1.4f);
                 tree.transform.localScale *= randomScale;
+
+                // İçinden geçilmesini önlemek için Collider kontrolü ve boyutlandırması
+                if (tree.GetComponent<Collider>() == null)
+                {
+                    CapsuleCollider col = tree.AddComponent<CapsuleCollider>();
+                    col.radius = 0.3f; // Yarıçapı küçülttük ki görünmez duvar hissi vermesin
+                    col.height = 4f;
+                    col.center = new Vector3(0, 2f, 0);
+                }
             }
         }
     }
