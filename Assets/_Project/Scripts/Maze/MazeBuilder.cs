@@ -28,7 +28,7 @@ public class MazeBuilder : MonoBehaviour
     public int height = 10;
     public float cellSize = 4f;
     public float wallHeight = 3f;
-    public float wallThickness = 0.2f;
+    public float wallThickness = 0.5f;
 
     [Header("Dış Alan")]
     [Tooltip("Labirentin dışında kaç hücrelik zemin olsun. Ağaçlar buraya yerleşir. 0 = dış alan yok.")]

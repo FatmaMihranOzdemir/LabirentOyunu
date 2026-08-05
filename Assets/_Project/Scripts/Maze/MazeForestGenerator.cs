@@ -38,7 +38,6 @@ public class MazeForestGenerator : MonoBehaviour
             mazeBuilder.Unsubscribe(OnMazeReady);
         }
     }
-
     void OnMazeReady(MazeGridData grid)
     {
         ClearForest();
@@ -49,34 +48,36 @@ public class MazeForestGenerator : MonoBehaviour
         forestContainer.transform.parent = this.transform;
         forestContainer.transform.localPosition = Vector3.zero;
 
-        // BURA DEĞİŞTİ: Labirentin GERÇEK boyutlarını dinamik hesaplıyoruz!
-        float calculatedMaxX = grid.Width * mazeBuilder.cellSize;
-        float calculatedMaxZ = grid.Height * mazeBuilder.cellSize;
+        // Labirent boyutu ( cellSize hesabı ile )
+        float mazeMaxX = grid.Width * mazeBuilder.cellSize;
+        float mazeMaxZ = grid.Height * mazeBuilder.cellSize;
 
-        // Labirentin güvenli dış sınırları
-        float minSafeX = -safetyMargin;
-        float maxSafeX = calculatedMaxX + safetyMargin;
-        float minSafeZ = -safetyMargin;
-        float maxSafeZ = calculatedMaxZ + safetyMargin;
+        // Yürünen taş alan (Outer Margin) ve güvenlik mesafesini ekleyip labirenti TAMAMEN kapatan alan:
+        // Labirent 0'dan başladığı için min değerler eksiye, max değerler artıya genişler
+        float totalBuffer = mazeBuilder.outerMargin + safetyMargin;
 
-        // Ağaçların dikileceği en dış çerçeve sınırları
+        float minSafeX = -totalBuffer;
+        float maxSafeX = mazeMaxX + totalBuffer;
+        float minSafeZ = -totalBuffer;
+        float maxSafeZ = mazeMaxZ + totalBuffer;
+
+        // Ormanın dış kaplama sınırları
         float startX = minSafeX - forestWidth;
         float endX = maxSafeX + forestWidth;
         float startZ = minSafeZ - forestWidth;
         float endZ = maxSafeZ + forestWidth;
 
-        // treeSpacing ile güvenli adım atıyoruz
         for (float x = startX; x <= endX; x += treeSpacing)
         {
             for (float z = startZ; z <= endZ; z += treeSpacing)
             {
-                // Koordinat güvenli bölgenin İÇİNDEYSE pas geç!
+                // Koordinat labirentin + margin alanının İÇİNDEYSE ağaç dikme!
                 if (x >= minSafeX && x <= maxSafeX && z >= minSafeZ && z <= maxSafeZ)
                 {
                     continue;
                 }
 
-                // Rastgele kaydırma
+                // Sapma payını sınır dışına kaçmayacak şekilde ekle
                 float posX = x + Random.Range(-randomness, randomness);
                 float posZ = z + Random.Range(-randomness, randomness);
                 Vector3 spawnPos = new Vector3(posX, 0f, posZ);
@@ -87,20 +88,20 @@ public class MazeForestGenerator : MonoBehaviour
                 Quaternion randomRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
                 GameObject tree = Instantiate(selectedTreePrefab, spawnPos, randomRotation, forestContainer.transform);
 
-                float randomScale = Random.Range(0.8f, 1.4f);
+                float randomScale = Random.Range(0.8f, 1.3f);
                 tree.transform.localScale *= randomScale;
 
-                // İçinden geçilmesini önlemek için Collider kontrolü ve boyutlandırması
                 if (tree.GetComponent<Collider>() == null)
                 {
                     CapsuleCollider col = tree.AddComponent<CapsuleCollider>();
-                    col.radius = 0.3f; // Yarıçapı küçülttük ki görünmez duvar hissi vermesin
+                    col.radius = 0.3f;
                     col.height = 4f;
                     col.center = new Vector3(0, 2f, 0);
                 }
             }
         }
     }
+
 
     public void ClearForest()
     {
