@@ -869,6 +869,18 @@ PrefabInstance:
       propertyPath: mazeBuilder
       value: 
       objectReference: {fileID: 1857363342}
+    - target: {fileID: 6548029872460560432, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
+      propertyPath: playerColor.b
+      value: 0.0627451
+      objectReference: {fileID: 0}
+    - target: {fileID: 6548029872460560432, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
+      propertyPath: playerColor.g
+      value: 0.10196079
+      objectReference: {fileID: 0}
+    - target: {fileID: 6548029872460560432, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
+      propertyPath: playerColor.r
+      value: 0.8352942
+      objectReference: {fileID: 0}
     - target: {fileID: 8617886760517617057, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
       propertyPath: m_LocalPosition.x
       value: -0

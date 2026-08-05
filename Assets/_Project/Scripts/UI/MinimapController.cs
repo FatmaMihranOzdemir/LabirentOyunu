@@ -11,26 +11,33 @@ public class MinimapController : MonoBehaviour
     [Header("Görünüm")]
     [Tooltip("Haritada oyuncunun çevresinde kaç hücre görünsün.")]
     public int viewRadius = 4;
+    [Tooltip("Her hücrenin kaç piksel çizileceği. RawImage boyutu (2*viewRadius+1)*cellPixels olmalı.")]
     public int cellPixels = 32;
     public int wallPixels = 4;
     [Tooltip("0 = sadece basılan hücre keşfedilir. Artırma, ileriyi gösterir.")]
     public int revealRadius = 0;
-    [Tooltip("Kapalıysa harita sabit kalır, ok döner. Açıksa harita döner, ok hep yukarı bakar.")]
+    [Tooltip("Açıksa harita oyuncuyla birlikte döner, ekranın yukarısı hep 'ön' olur.")]
     public bool rotateWithPlayer = false;
 
     [Header("Renkler")]
     public Color unknownColor = new Color(0.03f, 0.03f, 0.05f, 0.8f);
     public Color floorColor = new Color(0.82f, 0.78f, 0.70f, 1f);
     public Color wallColor = new Color(0.06f, 0.06f, 0.08f, 1f);
-    public Color playerColor = new Color(1f, 0.82f, 0.15f, 1f);
+    public Color playerColor = new Color(0.95f, 0.25f, 0.2f, 1f);
     public Color exitColor = new Color(0.30f, 0.92f, 0.45f, 1f);
     public Color borderColor = new Color(0.88f, 0.84f, 0.76f, 0.95f);
 
     private MazeGridData grid;
     private Texture2D texture;
     private Color[] buffer;
+
+    // Dairesel maske bir kez hesaplanır, her karede tekrar hesaplanmaz.
+    private float[] maskAlpha;
+    private bool[] maskIsBorder;
+
     private Vector2Int lastPlayerCell = new Vector2Int(int.MinValue, int.MinValue);
-    private float lastYaw = float.MinValue;
+    private float lastGx = float.MinValue;
+    private float lastGz = float.MinValue;
 
     void Start()
     {
@@ -51,7 +58,8 @@ public class MinimapController : MonoBehaviour
     {
         grid = newGrid;
         lastPlayerCell = new Vector2Int(int.MinValue, int.MinValue);
-        lastYaw = float.MinValue;
+        lastGx = float.MinValue;
+        lastGz = float.MinValue;
     }
 
     private void CreateTexture()
@@ -63,120 +71,16 @@ public class MinimapController : MonoBehaviour
         texture.wrapMode = TextureWrapMode.Clamp;
 
         buffer = new Color[side * side];
+        BuildMask(side);
 
         if (minimapImage != null) minimapImage.texture = texture;
     }
 
-    void Update()
+    private void BuildMask(int side)
     {
-        if (grid == null || player == null || texture == null) return;
+        maskAlpha = new float[side * side];
+        maskIsBorder = new bool[side * side];
 
-        float yaw = player.eulerAngles.y;
-
-        if (minimapImage != null)
-        {
-            minimapImage.rectTransform.localRotation =
-                rotateWithPlayer ? Quaternion.Euler(0f, 0f, yaw) : Quaternion.identity;
-        }
-
-        Vector2Int cell = mazeBuilder.WorldToCell(player.position);
-
-        bool cellChanged = cell != lastPlayerCell;
-        bool turned = Mathf.Abs(Mathf.DeltaAngle(lastYaw, yaw)) > 2f;
-
-        if (!cellChanged && !turned) return;
-
-        lastPlayerCell = cell;
-        lastYaw = yaw;
-
-        if (cellChanged) RevealAround(cell);
-        Redraw(cell, yaw);
-    }
-
-    private void RevealAround(Vector2Int center)
-    {
-        for (int dx = -revealRadius; dx <= revealRadius; dx++)
-        {
-            for (int dz = -revealRadius; dz <= revealRadius; dz++)
-            {
-                MazeCell cell = grid.GetCell(center.x + dx, center.y + dz);
-                if (cell != null) cell.PlayerVisited = true;
-            }
-        }
-    }
-
-    private void Redraw(Vector2Int playerCell, float yaw)
-    {
-        int side = texture.width;
-
-        for (int i = 0; i < buffer.Length; i++) buffer[i] = unknownColor;
-
-        for (int dx = -viewRadius; dx <= viewRadius; dx++)
-        {
-            for (int dz = -viewRadius; dz <= viewRadius; dz++)
-            {
-                MazeCell cell = grid.GetCell(playerCell.x + dx, playerCell.y + dz);
-                if (cell == null || !cell.PlayerVisited) continue;
-
-                int px = (dx + viewRadius) * cellPixels;
-                int pz = (dz + viewRadius) * cellPixels;
-
-                Color baseColor = (cell.Type == CellType.Exit) ? exitColor : floorColor;
-                FillBlock(side, px, pz, cellPixels, cellPixels, baseColor);
-
-                if (cell.WallSouth) FillBlock(side, px, pz, cellPixels, wallPixels, wallColor);
-                if (cell.WallNorth) FillBlock(side, px, pz + cellPixels - wallPixels, cellPixels, wallPixels, wallColor);
-                if (cell.WallWest) FillBlock(side, px, pz, wallPixels, cellPixels, wallColor);
-                if (cell.WallEast) FillBlock(side, px + cellPixels - wallPixels, pz, wallPixels, cellPixels, wallColor);
-            }
-        }
-
-        DrawPlayerArrow(side, rotateWithPlayer ? 0f : yaw);
-        ApplyCircularMask(side);
-
-        texture.SetPixels(buffer);
-        texture.Apply();
-    }
-
-    // Oku, oyuncunun baktığı yöne döndürerek çizer.
-    private void DrawPlayerArrow(int side, float yawDegrees)
-    {
-        float cx = side / 2f;
-        float cy = side / 2f;
-
-        float h = Mathf.Max(8f, cellPixels * 1.3f);
-        float halfW = Mathf.Max(3f, cellPixels * 0.45f);
-
-        float rad = yawDegrees * Mathf.Deg2Rad;
-        float sin = Mathf.Sin(rad);
-        float cos = Mathf.Cos(rad);
-
-        int extent = Mathf.CeilToInt(h);
-
-        for (int y = -extent; y <= extent; y++)
-        {
-            for (int x = -extent; x <= extent; x++)
-            {
-                // piksel konumunu okun yerel uzayına çevir (yerel +y = bakış yönü)
-                float localY = x * sin + y * cos;
-                float localX = x * cos - y * sin;
-
-                if (localY < -h / 2f || localY > h / 2f) continue;
-
-                float t = (h / 2f - localY) / h;
-                if (Mathf.Abs(localX) > halfW * t) continue;
-
-                int px = Mathf.RoundToInt(cx + x);
-                int py = Mathf.RoundToInt(cy + y);
-                if (px < 0 || px >= side || py < 0 || py >= side) continue;
-
-                buffer[py * side + px] = playerColor;
-            }
-        }
-    }
-
-    private void ApplyCircularMask(int side)
-    {
         float center = side / 2f;
         float radius = side / 2f;
         float fadeStart = radius * 0.88f;
@@ -193,18 +97,146 @@ public class MinimapController : MonoBehaviour
 
                 if (dist > radius)
                 {
-                    buffer[i].a = 0f;
+                    maskAlpha[i] = 0f;
                 }
                 else if (dist >= borderInner)
                 {
-                    buffer[i] = borderColor;
+                    maskIsBorder[i] = true;
+                    maskAlpha[i] = 1f;
                 }
                 else if (dist > fadeStart)
                 {
-                    float t = 1f - (dist - fadeStart) / (borderInner - fadeStart);
-                    buffer[i].a *= t;
+                    maskAlpha[i] = 1f - (dist - fadeStart) / (borderInner - fadeStart);
+                }
+                else
+                {
+                    maskAlpha[i] = 1f;
                 }
             }
+        }
+    }
+
+    void Update()
+    {
+        if (grid == null || player == null || texture == null || mazeBuilder == null) return;
+
+        if (minimapImage != null)
+        {
+            float yaw = player.eulerAngles.y;
+            minimapImage.rectTransform.localRotation =
+                rotateWithPlayer ? Quaternion.Euler(0f, 0f, yaw) : Quaternion.identity;
+        }
+
+        // Oyuncunun grid üzerindeki KESİRLİ konumu — kesintisiz kayma bundan geliyor.
+        Vector3 local = mazeBuilder.transform.InverseTransformPoint(player.position);
+        float gx = local.x / mazeBuilder.cellSize;
+        float gz = local.z / mazeBuilder.cellSize;
+
+        Vector2Int cell = new Vector2Int(Mathf.RoundToInt(gx), Mathf.RoundToInt(gz));
+
+        if (cell != lastPlayerCell)
+        {
+            lastPlayerCell = cell;
+            RevealAround(cell);
+        }
+        else if (Mathf.Abs(gx - lastGx) < 0.004f && Mathf.Abs(gz - lastGz) < 0.004f)
+        {
+            return; // oyuncu neredeyse hiç kımıldamadı, yeniden çizmeye gerek yok
+        }
+
+        lastGx = gx;
+        lastGz = gz;
+
+        Redraw(cell, gx - cell.x, gz - cell.y);
+    }
+
+    private void RevealAround(Vector2Int center)
+    {
+        for (int dx = -revealRadius; dx <= revealRadius; dx++)
+        {
+            for (int dz = -revealRadius; dz <= revealRadius; dz++)
+            {
+                MazeCell cell = grid.GetCell(center.x + dx, center.y + dz);
+                if (cell != null) cell.PlayerVisited = true;
+            }
+        }
+    }
+
+    // fracX / fracZ: oyuncunun hücre merkezine göre kesirli sapması (-0.5 .. 0.5)
+    private void Redraw(Vector2Int playerCell, float fracX, float fracZ)
+    {
+        int side = texture.width;
+
+        int offX = Mathf.RoundToInt(fracX * cellPixels);
+        int offZ = Mathf.RoundToInt(fracZ * cellPixels);
+
+        for (int i = 0; i < buffer.Length; i++) buffer[i] = unknownColor;
+
+        // Kenarlarda boşluk kalmasın diye bir hücre fazladan çiziyoruz.
+        int range = viewRadius + 1;
+
+        for (int dx = -range; dx <= range; dx++)
+        {
+            for (int dz = -range; dz <= range; dz++)
+            {
+                MazeCell cell = grid.GetCell(playerCell.x + dx, playerCell.y + dz);
+                if (cell == null || !cell.PlayerVisited) continue;
+
+                int px = (dx + viewRadius) * cellPixels - offX;
+                int pz = (dz + viewRadius) * cellPixels - offZ;
+
+                Color baseColor = (cell.Type == CellType.Exit) ? exitColor : floorColor;
+                FillBlock(side, px, pz, cellPixels, cellPixels, baseColor);
+
+                if (cell.WallSouth) FillBlock(side, px, pz, cellPixels, wallPixels, wallColor);
+                if (cell.WallNorth) FillBlock(side, px, pz + cellPixels - wallPixels, cellPixels, wallPixels, wallColor);
+                if (cell.WallWest) FillBlock(side, px, pz, wallPixels, cellPixels, wallColor);
+                if (cell.WallEast) FillBlock(side, px + cellPixels - wallPixels, pz, wallPixels, cellPixels, wallColor);
+            }
+        }
+
+        DrawPlayerMarker(side);
+        ApplyMask();
+
+        texture.SetPixels(buffer);
+        texture.Apply();
+    }
+
+    private void DrawPlayerMarker(int side)
+    {
+        float cx = side / 2f;
+        float cy = side / 2f;
+        float radius = Mathf.Max(3f, cellPixels * 0.32f);
+        float radiusSq = radius * radius;
+
+        int extent = Mathf.CeilToInt(radius) + 1;
+
+        for (int y = -extent; y <= extent; y++)
+        {
+            for (int x = -extent; x <= extent; x++)
+            {
+                if (x * x + y * y > radiusSq) continue;
+
+                int px = Mathf.RoundToInt(cx + x);
+                int py = Mathf.RoundToInt(cy + y);
+                if (px < 0 || px >= side || py < 0 || py >= side) continue;
+
+                buffer[py * side + px] = playerColor;
+            }
+        }
+    }
+
+    private void ApplyMask()
+    {
+        for (int i = 0; i < buffer.Length; i++)
+        {
+            if (maskIsBorder[i])
+            {
+                buffer[i] = borderColor;
+                continue;
+            }
+
+            buffer[i].a *= maskAlpha[i];
         }
     }
 
