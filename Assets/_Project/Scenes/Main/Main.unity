@@ -828,6 +828,112 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ac0b09e7857660247b1477e93731de29, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachinePipeline
+--- !u!1 &692221723
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 692221725}
+  - component: {fileID: 692221724}
+  m_Layer: 0
+  m_Name: Doors
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &692221724
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692221723}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 905696a84b9c0cf47919127c382b2c71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::DoorPlacer
+  mazeBuilder: {fileID: 890551591}
+  player: {fileID: 2105602182}
+  pathDoorCount: 3
+  decoyDoorCount: 2
+  safeMargin: 3
+  mixTypes: 1
+  singleType: 0
+  doorMaterial: {fileID: 0}
+  doorSlabPrefab: {fileID: 8652409880830590594, guid: 7b8fa1d90610a564ea2b62fc72c637a4, type: 3}
+  logDebugInfo: 1
+--- !u!4 &692221725
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 692221723}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 68.40497, y: 14.64421, z: 613.4085}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &760002080
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 760002082}
+  - component: {fileID: 760002081}
+  m_Layer: 0
+  m_Name: SawTrapPLacer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &760002081
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760002080}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f822ff2a224a004badcb01da517b47e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::SawTrapPlacer
+  mazeBuilder: {fileID: 890551591}
+  player: {fileID: 2105602182}
+  sawTrapPrefab: {fileID: 7351043731445019617, guid: e8c9c49eaeaafcc4885a0cc159cd31b6, type: 3}
+  trapCount: 2
+  safeMargin: 3
+  minSpacing: 3
+  minCellsFromOtherTraps: 2
+  logDebugInfo: 1
+--- !u!4 &760002082
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 760002080}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 68.40497, y: 14.64421, z: 613.4085}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &890551590
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1134,6 +1240,59 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2131507755}
   m_SourcePrefab: {fileID: 100100000, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
+--- !u!1 &1378350793
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1378350795}
+  - component: {fileID: 1378350794}
+  m_Layer: 0
+  m_Name: ArrowTrapSystem
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1378350794
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1378350793}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 03bf78ee8fce8af4ca7f5e8b42418c9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ArrowTrapPlacer
+  mazeBuilder: {fileID: 890551591}
+  player: {fileID: 2105602182}
+  arrowTrapPrefab: {fileID: 3984896550745497746, guid: 37845cc28e86251499866858a74d20b5, type: 3}
+  trapCount: 2
+  safeMargin: 3
+  minSpacing: 4
+  minCellsFromOtherTraps: 0.5
+  maxStartDelay: 1.5
+  logDebugInfo: 1
+--- !u!4 &1378350795
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1378350793}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 68.40497, y: 14.64421, z: 613.4085}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1579875286
 GameObject:
   m_ObjectHideFlags: 0
@@ -1678,3 +1837,6 @@ SceneRoots:
   - {fileID: 577393913}
   - {fileID: 1589561532}
   - {fileID: 64962869}
+  - {fileID: 1378350795}
+  - {fileID: 692221725}
+  - {fileID: 760002082}
