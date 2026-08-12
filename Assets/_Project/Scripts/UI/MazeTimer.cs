@@ -50,14 +50,30 @@ public class MazeTimer : MonoBehaviour
                 nextBeepTime = Time.time + beepInterval;
             }
 
-            // Kırmızı yazının hafif büyüyp küçülmesi (Pulse efekti)
-            float scale = 1f + Mathf.PingPong(Time.time * 4f, 0.12f);
-            if (timerText != null) timerText.transform.localScale = new Vector3(scale, scale, 1f);
+            // Pürüzsüz Sine Dalgası ile titremeyen Pulse efekti
+            // 6f: Büyüyüp küçülme hızı | 0.08f: Büyüme miktarı (Gözü yormaz, akıcıdır)
+            float scale = 1f + (Mathf.Sin(Time.time * 6f) * 0.08f);
+            if (timerText != null)
+            {
+                timerText.transform.localScale = new Vector3(scale, scale, 1f);
+            }
+        }
+        else
+        {
+            // 30 saniyenin dışındayken boyutu varsayılana sabitle
+            if (timerText != null && timerText.transform.localScale != Vector3.one)
+            {
+                timerText.transform.localScale = Vector3.one;
+            }
         }
 
         if (currentTime <= 0f)
         {
             currentTime = 0f;
+
+            // Süre bittiğinde scale'i sıfırla ve durdur
+            if (timerText != null) timerText.transform.localScale = Vector3.one;
+
             StopTimer();
             Debug.Log("SÜRE BİTTİ!");
         }
