@@ -74,6 +74,8 @@ public class MazeBuilder : MonoBehaviour
     [ContextMenu("Labirenti Şimdi Oluştur")]
     public void BuildMaze()
     {
+        if (transform.position != Vector3.zero || transform.rotation != Quaternion.identity)
+            Debug.LogError($"[MazeBuilder] Bu obje (0,0,0) konumunda ve dönüşsüz olmalı! Şu an: {transform.position}. Aksi halde oyuncu doğuşu, mini-harita ve ağaçlar bozulur.");
         ClearChildren();
 
         var sw = System.Diagnostics.Stopwatch.StartNew();

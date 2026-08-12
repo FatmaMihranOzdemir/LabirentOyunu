@@ -27,6 +27,10 @@ public class MinimapController : MonoBehaviour
     public Color exitColor = new Color(0.30f, 0.92f, 0.45f, 1f);
     public Color borderColor = new Color(0.88f, 0.84f, 0.76f, 0.95f);
 
+    [Header("Hata Ayıklama")]
+    [Tooltip("Açarsan Console'a oyuncunun hesaplanan grid konumunu yazar.")]
+    public bool logGridPosition = false;
+
     private MazeGridData grid;
     private Texture2D texture;
     private Color[] buffer;
@@ -38,6 +42,12 @@ public class MinimapController : MonoBehaviour
     private Vector2Int lastPlayerCell = new Vector2Int(int.MinValue, int.MinValue);
     private float lastGx = float.MinValue;
     private float lastGz = float.MinValue;
+
+    // Grid eksenleri — MazeBuilder'ın kendi fonksiyonundan türetilir.
+    private Vector3 gridOrigin;
+    private Vector3 gridStepX;
+    private Vector3 gridStepZ;
+    private bool axesReady;
 
     void Start()
     {
@@ -60,6 +70,27 @@ public class MinimapController : MonoBehaviour
         lastPlayerCell = new Vector2Int(int.MinValue, int.MinValue);
         lastGx = float.MinValue;
         lastGz = float.MinValue;
+
+        CacheGridAxes();
+    }
+
+    /// <summary>
+    /// MazeBuilder'a üç hücrenin dünya konumunu sorarak grid eksenlerini çıkarır.
+    /// Böylece CellToWorldPosition ister transform kullansın ister kullanmasın,
+    /// minimap her zaman labirentle aynı koordinat sistemini kullanır.
+    /// </summary>
+    private void CacheGridAxes()
+    {
+        if (mazeBuilder == null) { axesReady = false; return; }
+
+        gridOrigin = mazeBuilder.CellToWorldPosition(0, 0);
+        gridStepX = mazeBuilder.CellToWorldPosition(1, 0) - gridOrigin;
+        gridStepZ = mazeBuilder.CellToWorldPosition(0, 1) - gridOrigin;
+
+        axesReady = gridStepX.sqrMagnitude > 0.0001f && gridStepZ.sqrMagnitude > 0.0001f;
+
+        if (!axesReady)
+            Debug.LogWarning("[Minimap] Grid eksenleri hesaplanamadı. cellSize sıfır olabilir.");
     }
 
     private void CreateTexture()
@@ -119,6 +150,8 @@ public class MinimapController : MonoBehaviour
     void Update()
     {
         if (grid == null || player == null || texture == null || mazeBuilder == null) return;
+        if (!axesReady) CacheGridAxes();
+        if (!axesReady) return;
 
         if (minimapImage != null)
         {
@@ -127,12 +160,16 @@ public class MinimapController : MonoBehaviour
                 rotateWithPlayer ? Quaternion.Euler(0f, 0f, yaw) : Quaternion.identity;
         }
 
-        // Oyuncunun grid üzerindeki KESİRLİ konumu — kesintisiz kayma bundan geliyor.
-        Vector3 local = mazeBuilder.transform.InverseTransformPoint(player.position);
-        float gx = local.x / mazeBuilder.cellSize;
-        float gz = local.z / mazeBuilder.cellSize;
+        // Oyuncunun grid üzerindeki KESİRLİ konumu.
+        // Labirentin gerçek eksenlerine izdüşüm alınır — transform kayması olsa bile doğru sonuç verir.
+        Vector3 rel = player.position - gridOrigin;
+        float gx = Vector3.Dot(rel, gridStepX) / gridStepX.sqrMagnitude;
+        float gz = Vector3.Dot(rel, gridStepZ) / gridStepZ.sqrMagnitude;
 
         Vector2Int cell = new Vector2Int(Mathf.RoundToInt(gx), Mathf.RoundToInt(gz));
+
+        if (logGridPosition)
+            Debug.Log($"[Minimap] gx={gx:F2} gz={gz:F2} → hücre ({cell.x},{cell.y})");
 
         if (cell != lastPlayerCell)
         {
