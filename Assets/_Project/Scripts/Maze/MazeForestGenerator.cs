@@ -10,8 +10,8 @@ public class MazeForestGenerator : MonoBehaviour
     public GameObject[] treePrefabs;
 
     [Header("Orman Sınır Ayarları")]
-    [Tooltip("Duvarlardan kaç birim uzaktan orman başlasın?")]
-    public float safetyMargin = 2f;
+    [Tooltip("Duvarlardan kaç birim uzaktan orman başlasın? (Dalların girmemesi için ideal: 5 - 6)")]
+    public float safetyMargin = 5f;
     [Tooltip("Dışarıya doğru kaç metre boyunca ağaç dikilsin?")]
     public float forestWidth = 30f;
 
@@ -20,7 +20,7 @@ public class MazeForestGenerator : MonoBehaviour
     [Range(2f, 8f)]
     public float treeSpacing = 3.5f;
     [Tooltip("Doğallık sapması")]
-    public float randomness = 0.8f;
+    public float randomness = 0.5f;
 
     private void OnEnable()
     {
@@ -38,6 +38,7 @@ public class MazeForestGenerator : MonoBehaviour
             mazeBuilder.Unsubscribe(OnMazeReady);
         }
     }
+
     void OnMazeReady(MazeGridData grid)
     {
         ClearForest();
@@ -48,12 +49,9 @@ public class MazeForestGenerator : MonoBehaviour
         forestContainer.transform.parent = this.transform;
         forestContainer.transform.localPosition = Vector3.zero;
 
-        // Labirent boyutu ( cellSize hesabı ile )
         float mazeMaxX = grid.Width * mazeBuilder.cellSize;
         float mazeMaxZ = grid.Height * mazeBuilder.cellSize;
 
-        // Yürünen taş alan (Outer Margin) ve güvenlik mesafesini ekleyip labirenti TAMAMEN kapatan alan:
-        // Labirent 0'dan başladığı için min değerler eksiye, max değerler artıya genişler
         float totalBuffer = mazeBuilder.outerMargin + safetyMargin;
 
         float minSafeX = -totalBuffer;
@@ -61,7 +59,6 @@ public class MazeForestGenerator : MonoBehaviour
         float minSafeZ = -totalBuffer;
         float maxSafeZ = mazeMaxZ + totalBuffer;
 
-        // Ormanın dış kaplama sınırları
         float startX = minSafeX - forestWidth;
         float endX = maxSafeX + forestWidth;
         float startZ = minSafeZ - forestWidth;
@@ -71,15 +68,16 @@ public class MazeForestGenerator : MonoBehaviour
         {
             for (float z = startZ; z <= endZ; z += treeSpacing)
             {
-                // Koordinat labirentin + margin alanının İÇİNDEYSE ağaç dikme!
-                if (x >= minSafeX && x <= maxSafeX && z >= minSafeZ && z <= maxSafeZ)
+                // Rastgele sapmayı önceden hesapla
+                float posX = x + Random.Range(-randomness, randomness);
+                float posZ = z + Random.Range(-randomness, randomness);
+
+                // Sapma eklenmiş SON POZİSYON labirentin güvenli alanındaysa doğurma!
+                if (posX >= minSafeX && posX <= maxSafeX && posZ >= minSafeZ && posZ <= maxSafeZ)
                 {
                     continue;
                 }
 
-                // Sapma payını sınır dışına kaçmayacak şekilde ekle
-                float posX = x + Random.Range(-randomness, randomness);
-                float posZ = z + Random.Range(-randomness, randomness);
                 Vector3 spawnPos = new Vector3(posX, 0f, posZ);
 
                 GameObject selectedTreePrefab = treePrefabs[Random.Range(0, treePrefabs.Length)];
@@ -88,7 +86,8 @@ public class MazeForestGenerator : MonoBehaviour
                 Quaternion randomRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
                 GameObject tree = Instantiate(selectedTreePrefab, spawnPos, randomRotation, forestContainer.transform);
 
-                float randomScale = Random.Range(0.8f, 1.3f);
+                // Aşırı büyük ağaçların dalları girmesin diye ölçeği biraz daha derli toplu tuttuk
+                float randomScale = Random.Range(0.7f, 1.1f);
                 tree.transform.localScale *= randomScale;
 
                 if (tree.GetComponent<Collider>() == null)
@@ -101,7 +100,6 @@ public class MazeForestGenerator : MonoBehaviour
             }
         }
     }
-
 
     public void ClearForest()
     {

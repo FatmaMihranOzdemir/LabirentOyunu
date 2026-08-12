@@ -98,7 +98,11 @@ public class MazeBuilder : MonoBehaviour
 
         BuildWalls(grid);
         BuildEntranceVestibule(grid, startDoorDir);
+        // girişi yap "
+        // player spawn
         BuildExitPlatform(grid, exitDoorDir);
+
+        CombineMazeWalls();
 
         Grid = grid;
         OnMazeBuilt?.Invoke(grid);
@@ -117,8 +121,13 @@ public class MazeBuilder : MonoBehaviour
     // Duvarlar SADECE grid verisine göre örülür.
     // Giriş/çıkış delikleri MazeGenerator.OpenBoundaryWall içinde veride açılır,
     // burada ayrıca bir istisna mantığı YOKTUR. Tek doğruluk kaynağı: grid.
+    // DUVAR BİRLEŞİMLERİNİ PÜRÜZSÜZ (SMOOTH) YAPAN DÜZELTME
+    // ÇİFT DUVAR ÇAKIŞMASINI VE TİTREMEYİ (Z-FIGHTING) KESEN METOD
     private void BuildWalls(MazeGridData grid)
     {
+        // 0.002f offset, yan yana gelen yüzeylerin aynı noktada çakışıp titremesini fiziksel olarak engeller
+        float lengthOffset = -0.01f;
+
         for (int x = 0; x < width; x++)
         {
             for (int z = 0; z < height; z++)
@@ -127,17 +136,69 @@ public class MazeBuilder : MonoBehaviour
                 Vector3 center = CellToWorldPosition(x, z);
 
                 if (z == 0 && cell.WallSouth)
-                    CreateWall(center + new Vector3(0, 0, -cellSize / 2f), new Vector3(cellSize, wallHeight, wallThickness));
+                    CreateWall(center + new Vector3(0, 0, -cellSize / 2f), new Vector3(cellSize + lengthOffset, wallHeight, wallThickness));
                 if (x == 0 && cell.WallWest)
-                    CreateWall(center + new Vector3(-cellSize / 2f, 0, 0), new Vector3(wallThickness, wallHeight, cellSize));
+                    CreateWall(center + new Vector3(-cellSize / 2f, 0, 0), new Vector3(wallThickness, wallHeight, cellSize + lengthOffset));
+
                 if (cell.WallNorth)
-                    CreateWall(center + new Vector3(0, 0, cellSize / 2f), new Vector3(cellSize, wallHeight, wallThickness));
+                    CreateWall(center + new Vector3(0, 0, cellSize / 2f), new Vector3(cellSize + lengthOffset, wallHeight, wallThickness));
                 if (cell.WallEast)
-                    CreateWall(center + new Vector3(cellSize / 2f, 0, 0), new Vector3(wallThickness, wallHeight, cellSize));
+                    CreateWall(center + new Vector3(cellSize / 2f, 0, 0), new Vector3(wallThickness, wallHeight, cellSize + lengthOffset));
+            }
+        }
+
+        BuildCornerPosts(grid);
+    }
+
+    // Her hücre köşesine (grid vertex), o köşede en az bir duvar varsa bir "post" küpü koyar.
+    // Bu, komşu duvar segmentleri arasındaki boşlukları kapatır; overlap gerekmez, o yüzden z-fighting olmaz.
+    private void BuildCornerPosts(MazeGridData grid)
+    {
+        for (int x = 0; x <= width; x++)
+        {
+            for (int z = 0; z <= height; z++)
+            {
+                if (!CornerNeedsPost(grid, x, z)) continue;
+
+                Vector3 cornerPos = new Vector3(
+                    x * cellSize - cellSize / 2f, // magic number
+                    0,
+                    z * cellSize - cellSize / 2f
+                );
+
+                CreateWall(cornerPos, new Vector3(wallThickness, wallHeight, wallThickness));
             }
         }
     }
 
+    // Bu köşe noktasında (x,z) çevresindeki 4 hücrenin duvarlarından
+    // en az ikisi bu köşeye değiyorsa (yani bir köşe/dönüş oluşuyorsa) post gerekir.
+    private bool CornerNeedsPost(MazeGridData grid, int cornerX, int cornerZ)
+    {
+       
+        bool wallFromWest = CellHasWallAt(grid, cornerX - 1, cornerZ - 1, north: true)
+                          || CellHasWallAt(grid, cornerX - 1, cornerZ, south: true);
+        bool wallFromEast = CellHasWallAt(grid, cornerX, cornerZ - 1, north: true)
+                          || CellHasWallAt(grid, cornerX, cornerZ, south: true);
+        bool wallFromSouth = CellHasWallAt(grid, cornerX - 1, cornerZ - 1, east: true)
+                           || CellHasWallAt(grid, cornerX, cornerZ - 1, west: true);
+        bool wallFromNorth = CellHasWallAt(grid, cornerX - 1, cornerZ, east: true)
+                           || CellHasWallAt(grid, cornerX, cornerZ, west: true);
+
+        int count = (wallFromWest ? 1 : 0) + (wallFromEast ? 1 : 0) + (wallFromSouth ? 1 : 0) + (wallFromNorth ? 1 : 0);
+        return count >= 2;
+    }
+
+    private bool CellHasWallAt(MazeGridData grid, int x, int z, bool north = false, bool south = false, bool east = false, bool west = false)
+    {
+        if (x < 0 || x >= grid.Width || z < 0 || z >= grid.Height) return false;
+        MazeCell cell = grid.GetCell(x, z);
+        if (north) return cell.WallNorth;
+        if (south) return cell.WallSouth;
+        if (east) return cell.WallEast;
+        if (west) return cell.WallWest;
+        return false;
+    }
     // --- Giriş odası: üç tarafı duvarla kapalı, tek açıklığı labirent kapısı ---
     // DİKKAT: Bu üç duvar sadece görsel değil. Oyuncunun labirenti dolanıp
     // doğrudan çıkışa gitmesini engelleyen şey bunlar. Kaldırmayın.
@@ -227,7 +288,7 @@ public class MazeBuilder : MonoBehaviour
     }
 
     // --- Yön yardımcıları ---
-    private Vector3 GetOutwardDirection(string direction)
+    private Vector3 GetOutwardDirection(string direction) // enum kullanımı
     {
         switch (direction)
         {
@@ -290,8 +351,8 @@ public class MazeBuilder : MonoBehaviour
             if (wallMaterial != null) wall.GetComponent<Renderer>().material = wallMaterial;
         }
 
-        wall.name = "Wall";
-        wall.transform.localPosition = localPos + new Vector3(0, wallHeight / 2f, 0);
+        wall.name = "Wall"; // BURASI İSMİ "Wall" YAPARAK ZEMİNDEN AYIRIR
+        wall.transform.localPosition = localPos + new Vector3(0, scale.y / 2f, 0);
         wall.transform.localScale = scale;
         wall.transform.localRotation = Quaternion.identity;
     }
@@ -333,6 +394,51 @@ public class MazeBuilder : MonoBehaviour
 
         obj.transform.localRotation = Quaternion.identity;
         return obj;
+    }
+
+    private void CombineMazeWalls()
+    {
+        MeshFilter[] allMeshFilters = GetComponentsInChildren<MeshFilter>();
+        System.Collections.Generic.List<CombineInstance> combineList = new System.Collections.Generic.List<CombineInstance>();
+        System.Collections.Generic.List<GameObject> objectsToDestroy = new System.Collections.Generic.List<GameObject>();
+
+        for (int i = 0; i < allMeshFilters.Length; i++)
+        {
+            if (allMeshFilters[i].gameObject.name != "Wall") continue;
+            if (allMeshFilters[i].sharedMesh == null) continue;
+
+            CombineInstance ci = new CombineInstance();
+            ci.mesh = allMeshFilters[i].sharedMesh;
+            ci.transform = allMeshFilters[i].transform.localToWorldMatrix;
+            combineList.Add(ci);
+
+            // Eski parçaları silinmek üzere listeye ekle
+            objectsToDestroy.Add(allMeshFilters[i].gameObject);
+        }
+
+        if (combineList.Count == 0) return;
+
+        // 1. Yeni birleşmiş duvarı oluştur
+        GameObject combinedWalls = new GameObject("Combined_Maze_Walls");
+        combinedWalls.transform.parent = transform;
+
+        MeshFilter mf = combinedWalls.AddComponent<MeshFilter>();
+        mf.mesh = new Mesh();
+        mf.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        mf.mesh.CombineMeshes(combineList.ToArray(), true, true);
+
+        MeshRenderer mr = combinedWalls.AddComponent<MeshRenderer>();
+        mr.material = wallMaterial;
+
+        MeshCollider mc = combinedWalls.AddComponent<MeshCollider>();
+        mc.sharedMesh = mf.mesh;
+
+        // 2. Çakışma yapan tüm eski "Wall" objelerini SAHNEDEN KÖKTEN SİL
+        foreach (GameObject obj in objectsToDestroy)
+        {
+            if (Application.isPlaying) Destroy(obj);
+            else DestroyImmediate(obj);
+        }
     }
 }
 
