@@ -225,6 +225,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2535365734001539102, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
   m_PrefabInstance: {fileID: 12572703}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &12572705 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3061936770855014595, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
+  m_PrefabInstance: {fileID: 12572703}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &64962866
 GameObject:
   m_ObjectHideFlags: 0
@@ -696,8 +701,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -840.7, y: 497.59998}
-  m_SizeDelta: {x: 200, y: 60}
+  m_AnchoredPosition: {x: -828.8, y: 497.59998}
+  m_SizeDelta: {x: 240, y: 70}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &500520986
 MonoBehaviour:
@@ -1040,7 +1045,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MazeTimer
   timerText: {fileID: 1858777607}
-  totalTimeInSeconds: 180
+  totalTimeInSeconds: 5
   tensionThreshold: 30
   audioSource: {fileID: 1034128001}
   tensionSound: {fileID: 8300000, guid: 929d2af0df0d4864686b5e870c8996b8, type: 3}
@@ -1558,6 +1563,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1673531017}
+  - component: {fileID: 1673531018}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -1580,6 +1586,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1673531018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1673531016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c36104f820e06404c8e963161b47a4c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameStateManager
+  mazeBuilder: {fileID: 890551591}
+  deathScreen: {fileID: 12572705}
+  mazeTimer: {fileID: 1034127998}
+  restartDelay: 2
+  disableWhileGameOver:
+  - {fileID: 2105602186}
+  logDebugInfo: 1
 --- !u!1 &1858777605
 GameObject:
   m_ObjectHideFlags: 0
@@ -1614,7 +1639,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 145.8, y: -47.5}
+  m_AnchoredPosition: {x: 126.9, y: -40.5}
   m_SizeDelta: {x: 200, y: 50}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1858777607
@@ -1664,8 +1689,8 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 36
-  m_fontSizeBase: 36
+  m_fontSize: 50
+  m_fontSizeBase: 50
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
@@ -1703,7 +1728,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 63.272415, w: 0}
+  m_margin: {x: 0, y: 0, z: 5.3121796, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -1784,6 +1809,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6819075147077781144, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
   m_PrefabInstance: {fileID: 1069195096}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2105602186 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7730382489937961640, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
+  m_PrefabInstance: {fileID: 1069195096}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &2131507749 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4210057482215389865, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
