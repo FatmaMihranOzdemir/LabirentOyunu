@@ -3,7 +3,6 @@ using TMPro;
 
 /// <summary>
 /// Geri sayim sayaci.
-///
 /// Sure bittiginde OnTimeUp olayini tetikler; GameStateManager bunu dinleyip
 /// olum akisini baslatir. Labirent yenilendiginde ResetTimer ile sifirlanir.
 /// </summary>
@@ -22,6 +21,7 @@ public class MazeTimer : MonoBehaviour
     [Header("Ses Ayarları")]
     public AudioSource audioSource;
     public AudioClip tensionSound;
+    public AudioClip bgMusicClip;           // Arka plan müziği (MP3/WAV ses dosyası)
 
     private float currentTime;
     private bool isRunning = false;
@@ -100,12 +100,29 @@ public class MazeTimer : MonoBehaviour
                                        minutes, seconds, milliseconds);
     }
 
-    public void StartTimer() => isRunning = true;
+    public void StartTimer()
+    {
+        isRunning = true;
+
+        // Arka plan müziğini direkt klip olarak AudioSource üzerinden çalıyoruz
+        if (audioSource != null && bgMusicClip != null)
+        {
+            audioSource.clip = bgMusicClip;
+            audioSource.loop = true;
+            audioSource.Play();
+        }
+    }
 
     public void StopTimer()
     {
         isRunning = false;
         if (timerText != null) timerText.transform.localScale = Vector3.one;
+
+        // Süre bittiğinde veya sayaç durduğunda müziği kes
+        if (audioSource != null && audioSource.isPlaying)
+        {
+            audioSource.Stop();
+        }
     }
 
     /// <summary>

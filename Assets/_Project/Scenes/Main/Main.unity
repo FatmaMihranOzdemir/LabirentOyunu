@@ -1045,10 +1045,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::MazeTimer
   timerText: {fileID: 1858777607}
-  totalTimeInSeconds: 5
+  totalTimeInSeconds: 180
   tensionThreshold: 30
   audioSource: {fileID: 1034128001}
   tensionSound: {fileID: 8300000, guid: 929d2af0df0d4864686b5e870c8996b8, type: 3}
+  bgMusicClip: {fileID: 8300000, guid: 1f5e4e6bd944483499dd8e742b787b63, type: 3}
 --- !u!82 &1034128001
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1233,6 +1234,14 @@ PrefabInstance:
     - target: {fileID: 4763467821815750940, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
       propertyPath: m_Name
       value: PlayerSystem
+      objectReference: {fileID: 0}
+    - target: {fileID: 6405827776289179398, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
+      propertyPath: m_Volume
+      value: 0.454
+      objectReference: {fileID: 0}
+    - target: {fileID: 7730382489937961640, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
+      propertyPath: FootstepAudioVolume
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -1537,7 +1546,7 @@ MonoBehaviour:
     wallMaterial: {fileID: 2100000, guid: 171d305832c1ff8439b29868a108e89f, type: 2}
     floorMaterial: {fileID: 2100000, guid: 01a6717046987e34aae97b1a7292e32e, type: 2}
     fogColor: {r: 0.3735848, g: 0.3735848, b: 0.3735848, a: 0}
-  firstThemeChancePercent: 33
+  firstThemeChancePercent: 100
   mazeBuilder: {fileID: 890551591}
 --- !u!4 &1589561532
 Transform:
