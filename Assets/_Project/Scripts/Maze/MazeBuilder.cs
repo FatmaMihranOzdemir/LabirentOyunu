@@ -254,6 +254,7 @@ public class MazeBuilder : MonoBehaviour
         trigger.GetComponent<Collider>().isTrigger = true;
         trigger.GetComponent<Renderer>().material.color = Color.green;
         trigger.AddComponent<ExitMarker>();
+        trigger.AddComponent<ExitTriggerHandler>();
 
         if (logDebugInfo)
             Debug.Log($"[Çıkış] Çıkış platformu ve tetikleyici yerleştirildi ({doorDir} kapısı): {padCenter}");
