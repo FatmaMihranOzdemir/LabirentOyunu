@@ -225,6 +225,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 2535365734001539102, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
   m_PrefabInstance: {fileID: 12572703}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &12572705 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3061936770855014595, guid: feec5cc3afd069a4781af40fd222273d, type: 3}
+  m_PrefabInstance: {fileID: 12572703}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &64962866
 GameObject:
   m_ObjectHideFlags: 0
@@ -639,8 +644,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdae88ed7f68a8541b030119e32dccb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IntroCameraSequence
-  introCam: {fileID: 0}
-  followCam: {fileID: 0}
+  introCamObject: {fileID: 0}
+  followCamObject: {fileID: 0}
   introDuration: 4
 --- !u!114 &250967060
 MonoBehaviour:
@@ -696,7 +701,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -840.7, y: 497.59998}
+  m_AnchoredPosition: {x: -1161, y: 679}
   m_SizeDelta: {x: 200, y: 60}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &500520986
@@ -766,8 +771,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cdae88ed7f68a8541b030119e32dccb6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IntroCameraSequence
-  introCam: {fileID: 250967057}
-  followCam: {fileID: 2131507754}
+  introCamObject: {fileID: 250967056}
+  followCamObject: {fileID: 2131507749}
   introDuration: 0.2
 --- !u!4 &577393913
 Transform:
@@ -1240,6 +1245,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2131507755}
   m_SourcePrefab: {fileID: 100100000, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
+--- !u!114 &1069195097 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7730382489937961640, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
+  m_PrefabInstance: {fileID: 1069195096}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 26e54e5a728a9234ab24fcf1460ed8a2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1378350793
 GameObject:
   m_ObjectHideFlags: 0
@@ -1558,6 +1574,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1673531017}
+  - component: {fileID: 1673531018}
   m_Layer: 0
   m_Name: Managers
   m_TagString: Untagged
@@ -1580,6 +1597,25 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1673531018
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1673531016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c36104f820e06404c8e963161b47a4c3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GameStateManager
+  mazeBuilder: {fileID: 890551591}
+  deathScreen: {fileID: 12572705}
+  mazeTimer: {fileID: 1034127998}
+  restartDelay: 2
+  disableWhileGameOver:
+  - {fileID: 1069195097}
+  logDebugInfo: 1
 --- !u!1 &1858777605
 GameObject:
   m_ObjectHideFlags: 0
@@ -1797,17 +1833,6 @@ AudioListener:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2131507749}
   m_Enabled: 1
---- !u!114 &2131507754 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3559260989899179188, guid: 401635aaa49ec774ca52e43f76acb54b, type: 3}
-  m_PrefabInstance: {fileID: 1069195096}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2131507749}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 45e653bab7fb20e499bda25e1b646fea, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &2131507755
 MonoBehaviour:
   m_ObjectHideFlags: 0

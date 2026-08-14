@@ -1,23 +1,40 @@
-
-using Unity.Cinemachine;
 using UnityEngine;
 
 public class IntroCameraSequence : MonoBehaviour
 {
-    public CinemachineVirtualCamera introCam;
-    public CinemachineVirtualCamera followCam;
+    [Header("Kameraların Standart GameObject'lerini Sürükleyin")]
+    public GameObject introCamObject;
+    public GameObject followCamObject;
+
+    [Header("İntro Süresi (Saniye)")]
     public float introDuration = 4f;
 
     void Start()
     {
-        introCam.Priority = 20;
-        followCam.Priority = 10;
-        Invoke(nameof(SwitchToFollowCam), introDuration);
+        // Zaman akışını kesin olarak başlat
+        Time.timeScale = 1f;
+
+        if (introCamObject != null && followCamObject != null)
+        {
+            // İntro kamerasını aç, ana takibi kapat
+            introCamObject.SetActive(true);
+            followCamObject.SetActive(false);
+
+            // Belirtilen süre sonra kameraları değiştir
+            Invoke(nameof(SwitchToFollowCam), introDuration);
+        }
+        else
+        {
+            Debug.LogWarning("IntroCameraSequence: Kameralar Inspector'da atanmamış! İntro atlandı.");
+        }
     }
 
     void SwitchToFollowCam()
     {
-        followCam.Priority = 20;
-        introCam.Priority = 10;
+        if (introCamObject != null && followCamObject != null)
+        {
+            introCamObject.SetActive(false);
+            followCamObject.SetActive(true);
+        }
     }
 }
