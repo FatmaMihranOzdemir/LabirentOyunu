@@ -1,31 +1,26 @@
 using System.Collections;
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using StarterAssets;
 
-/// <summary>
-/// Olum ve kazanma akisini yonetir.
-///
-/// Olum sebepleri: kapi tuzagi, testere tuzagi, ok tuzagi, surenin bitmesi.
-/// Kazanma: cikisa ulasmak.
-/// Hepsi buraya event ile haber verir, tek bir akista toplanir.
-/// </summary>
 public class GameStateManager : MonoBehaviour
 {
-    [Header("Baglantilar")]
-    public MazeBuilder mazeBuilder;
-    [Tooltip("Olunce acilacak panel. Bos birakirsan ekran gosterilmez ama oyun yine yeniden baslar.")]
+    [Header("Paneller (UI)")]
+    [Tooltip("Tuzakta ölünce açılacak panel")]
     public GameObject deathScreen;
-    [Tooltip("Geri sayim sayaci. Bos birakilabilir, o zaman sure ile olum calismaz.")]
-    public MazeTimer mazeTimer;
 
-    [Header("Ayarlar")]
-    [Tooltip("Olum ekrani bu kadar saniye gosterilir, sonra yeni labirent uretilir.")]
-    public float restartDelay = 2f;
-    [Tooltip("Olum aninda kapatilacak scriptler. Genelde ThirdPersonController.")]
-    public MonoBehaviour[] disableWhileGameOver;
+    [Tooltip("Süre bittiğinde açılacak panel")]
+    public GameObject timeUpScreen;
+
+    [Header("Player & Zamanlayici")]
+    public GameObject playerArmature;
+    public MazeTimer mazeTimer;
 
     [Header("Hata Ayiklama")]
     public bool logDebugInfo = true;
 
+    private ThirdPersonController controller;
+    private StarterAssetsInputs starterInputs;
     private bool isGameOver;
 
     void OnEnable()
@@ -48,76 +43,89 @@ public class GameStateManager : MonoBehaviour
 
     void Start()
     {
+        Time.timeScale = 1f;
+
+        if (playerArmature != null)
+        {
+            controller = playerArmature.GetComponent<ThirdPersonController>();
+            starterInputs = playerArmature.GetComponent<StarterAssetsInputs>();
+        }
+
+        // Başlarken iki paneli de kapat
         if (deathScreen != null) deathScreen.SetActive(false);
-
-        // Kurulum hatalarini oyun baslar baslamaz bildir
-        if (mazeBuilder == null)
-            Debug.LogError("[Oyun] Maze Builder atanmamis! Olumden sonra yeni labirent uretilemez.");
-
-        if (deathScreen == null)
-            Debug.LogWarning("[Oyun] Death Screen atanmamis. Olunce ekran gosterilmeyecek.");
-
-        if (mazeTimer == null)
-            Debug.LogWarning("[Oyun] Maze Timer atanmamis. Sure bitince olum calismayacak, " +
-                             "sayac da yeniden baslamayacak.");
-
-        if (disableWhileGameOver == null || disableWhileGameOver.Length == 0)
-            Debug.LogWarning("[Oyun] Disable While Game Over bos. Olduktan sonra oyuncu " +
-                             "hareket etmeye devam edebilir.");
+        if (timeUpScreen != null) timeUpScreen.SetActive(false);
     }
 
-    private void HandlePlayerCrushed(SlidingDoor door) => Die("kapiya sikisti");
-    private void HandleSawHit(SawTrap saw) => Die("testereye carpti");
-    private void HandleArrowHit(ArrowTrap arrow) => Die("ok vurdu");
-    private void HandleTimeUp() => Die("sure bitti");
+    // --- TUZAK ÖLÜMLERİ ---
+    private void HandlePlayerCrushed(SlidingDoor door) => TriggerDeath("Kapıya sıkıştı");
+    private void HandleSawHit(SawTrap saw) => TriggerDeath("Testereye çarptı");
+    private void HandleArrowHit(ArrowTrap arrow) => TriggerDeath("Ok vurdu");
 
-    private void Die(string reason)
+    private void TriggerDeath(string reason)
     {
         if (isGameOver) return;
         isGameOver = true;
 
-        if (logDebugInfo)
-            Debug.Log($"[Oyun] OLUM — {reason}. {restartDelay} saniye sonra yeni labirent.");
-
-        SetPlayerControlEnabled(false);
+        if (logDebugInfo) Debug.Log($"[Oyun] ÖLÜM: {reason}");
 
         if (mazeTimer != null) mazeTimer.StopTimer();
         if (deathScreen != null) deathScreen.SetActive(true);
 
-        StartCoroutine(RestartAfterDelay());
+        FreezeGame();
     }
 
+    // --- SÜRE BİTİMİ ---
+    private void HandleTimeUp()
+    {
+        if (isGameOver) return;
+        isGameOver = true;
+
+        if (logDebugInfo) Debug.Log("[Oyun] SÜRE BİTTİ!");
+
+        if (mazeTimer != null) mazeTimer.StopTimer();
+        if (timeUpScreen != null) timeUpScreen.SetActive(true);
+
+        FreezeGame();
+    }
+
+    // --- KAZANMA ---
     private void HandleExitReached()
     {
         if (isGameOver) return;
+        if (logDebugInfo) Debug.Log("[Oyun] KAZANDIN! Çıkışa ulaşıldı.");
 
-        if (logDebugInfo)
-            Debug.Log("[Oyun] KAZANDIN — cikisa ulasildi, yeni labirent uretiliyor.");
-
-        Restart();
+        // RestartGame(); // KAPATTIK!
     }
 
-    private IEnumerator RestartAfterDelay()
+    // Oyunu durdurup fareyi UI için serbest bırakan ortak metod
+    private void FreezeGame()
     {
-        yield return new WaitForSeconds(restartDelay);
-        Restart();
+        Time.timeScale = 0f;
+
+        if (controller != null) controller.enabled = false;
+
+        if (starterInputs != null)
+        {
+            starterInputs.cursorLocked = false;
+            starterInputs.cursorInputForLook = false;
+            starterInputs.move = Vector2.zero;
+            starterInputs.look = Vector2.zero;
+        }
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
-    public void Restart()
+    // --- BUTON FONKSİYONLARI ---
+    public void RestartGame()
     {
-        if (deathScreen != null) deathScreen.SetActive(false);
-        if (mazeBuilder != null) mazeBuilder.BuildMaze();
-        if (mazeTimer != null) mazeTimer.ResetTimer();
-
-        SetPlayerControlEnabled(true);
-        isGameOver = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(1); // Main sahnesi (1)
     }
 
-    private void SetPlayerControlEnabled(bool value)
+    public void ToMainMenu()
     {
-        if (disableWhileGameOver == null) return;
-
-        foreach (var script in disableWhileGameOver)
-            if (script != null) script.enabled = value;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene(0); // Main Menu sahnesi (0)
     }
 }

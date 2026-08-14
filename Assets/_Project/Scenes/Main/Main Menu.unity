@@ -657,7 +657,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Texture: {fileID: 2800000, guid: 4cb3b7590bbffa34494db99edbb1f193, type: 3}
+  m_Texture: {fileID: 2800000, guid: f5eb66102e177ad4392da5fc6a9b835c, type: 3}
   m_UVRect:
     serializedVersion: 2
     x: 0
@@ -1301,6 +1301,14 @@ PrefabInstance:
       propertyPath: 'm_ActiveFontFeatures.Array.data[0]'
       value: 1801810542
       objectReference: {fileID: 0}
+    - target: {fileID: 8493265883608598096, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 121482784}
+    - target: {fileID: 8493265883608598096, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: QuitGame
+      objectReference: {fileID: 0}
     - target: {fileID: 8493265883608598097, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
       propertyPath: m_Sprite
       value: 
@@ -1420,6 +1428,14 @@ PrefabInstance:
     - target: {fileID: 8493265883817809517, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
       propertyPath: m_TargetGraphic
       value: 
+      objectReference: {fileID: 0}
+    - target: {fileID: 8493265883817809517, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 121482784}
+    - target: {fileID: 8493265883817809517, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: ToSettings
       objectReference: {fileID: 0}
     - target: {fileID: 8493265883817809519, guid: f5259575f117f2e4cb494441b4ee34a1, type: 3}
       propertyPath: m_IsActive

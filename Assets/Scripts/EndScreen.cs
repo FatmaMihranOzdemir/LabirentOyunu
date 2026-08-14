@@ -1,9 +1,11 @@
 using UnityEngine;
 using TMPro;
 using UnityEngine.SceneManagement;
+using StarterAssets;
 
 public class EndScreen : MonoBehaviour
 {
+    [Header("UI Paneli")]
     public GameObject endScreen;
     public TMP_Text resultText;
 
@@ -13,44 +15,76 @@ public class EndScreen : MonoBehaviour
     [Header("Pause Menu")]
     public MonoBehaviour PauseMenuScript;
 
+    private bool isEnded = false;
+
     private void Start()
     {
-        endScreen.SetActive(false);
+        if (endScreen != null)
+            endScreen.SetActive(false);
     }
 
     public void ShowWin()
     {
-        Debug.Log("YOU WON ÇALIŞTI!");
+        if (isEnded) return;
+        isEnded = true;
 
-        resultText.text = "";
-        endScreen.SetActive(true);
+        Debug.Log("<color=green>YOU WON EKRANI SABİTLENDİ!</color>");
 
+        if (resultText != null)
+            resultText.text = "";
+
+        // 1. Ekranı zorla aç
+        if (endScreen != null)
+            endScreen.SetActive(true);
+
+        // 2. Zamanı anında durdur (böylece hiçbir sayaç veya gecikmeli kod sahneyi yenileyemez)
         Time.timeScale = 0f;
 
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        // 3. Karakter hareket ve kamera girdilerini kökten kapat
+        StarterAssetsInputs starterInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
+        if (starterInputs != null)
+        {
+            starterInputs.cursorLocked = false;
+            starterInputs.cursorInputForLook = false;
+            starterInputs.move = Vector2.zero;
+            starterInputs.look = Vector2.zero;
+        }
 
-        // Karakter ve kamera kontrolünü kapat
         foreach (MonoBehaviour playerScript in PlayerScripts)
         {
             if (playerScript != null)
                 playerScript.enabled = false;
         }
 
-        // ESC ile Pause Menu açılmasın
         if (PauseMenuScript != null)
             PauseMenuScript.enabled = false;
+
+        // 4. Fare imlecini ekrana kilitle ve görünür yap
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     public void ShowLose()
     {
-        resultText.text = "";
-        endScreen.SetActive(true);
+        if (isEnded) return;
+        isEnded = true;
+
+        if (resultText != null)
+            resultText.text = "";
+
+        if (endScreen != null)
+            endScreen.SetActive(true);
 
         Time.timeScale = 0f;
 
-        Cursor.lockState = CursorLockMode.None;
-        Cursor.visible = true;
+        StarterAssetsInputs starterInputs = Object.FindAnyObjectByType<StarterAssetsInputs>();
+        if (starterInputs != null)
+        {
+            starterInputs.cursorLocked = false;
+            starterInputs.cursorInputForLook = false;
+            starterInputs.move = Vector2.zero;
+            starterInputs.look = Vector2.zero;
+        }
 
         foreach (MonoBehaviour playerScript in PlayerScripts)
         {
@@ -60,8 +94,12 @@ public class EndScreen : MonoBehaviour
 
         if (PauseMenuScript != null)
             PauseMenuScript.enabled = false;
+
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
+    // Buton Fonksiyonları
     public void PlayAgain()
     {
         Time.timeScale = 1f;
