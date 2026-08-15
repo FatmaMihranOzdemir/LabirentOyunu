@@ -4200,7 +4200,7 @@ MonoBehaviour:
     wallMaterial: {fileID: 2100000, guid: 171d305832c1ff8439b29868a108e89f, type: 2}
     floorMaterial: {fileID: 2100000, guid: 01a6717046987e34aae97b1a7292e32e, type: 2}
     fogColor: {r: 0.3735848, g: 0.3735848, b: 0.3735848, a: 0}
-  firstThemeChancePercent: 33
+  firstThemeChancePercent: 100
   mazeBuilder: {fileID: 890551591}
 --- !u!4 &1589561532
 Transform:
